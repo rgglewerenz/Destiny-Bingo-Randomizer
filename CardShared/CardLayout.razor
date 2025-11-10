@@ -1,0 +1,155 @@
+﻿@inject IJSRuntime JS
+<style>
+    .card-item {
+    position: relative;
+    border: 2px solid;
+    padding: 10px;
+    margin: 0;
+    text-align: center;
+    user-select: none;
+    color: white;
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE10+/Edge */
+    user-select: none; /* Standard */
+    width: 15vw;
+    height: 15vw;
+    }
+
+    .card-item:hover {
+    cursor: pointer;
+    }
+
+    .clicked {
+    }
+
+    .image-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+        display: flex;
+    }
+
+    .card-holder {
+    display: grid;
+    margin-left: auto;
+    margin-right: auto;
+    flex-flow: column;
+    justify-items: center;
+    align-content: end;
+    width: 100%;
+    }
+
+    .text-item{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: inherit;
+    margin: 5px;
+    }
+
+    .fit-box {
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    }
+
+</style>
+
+<div class="card-holder">
+    @if(Items.Count != 0 && IsClicked.Count != 0){
+        @foreach (var list in ItemsNumber)
+
+        {
+            <div class="row">
+                @foreach (var number in list)
+
+                {
+                    <div class="fit-box col-2 card-item @(IsClicked[number] ? "clicked" : "")"
+                    onclick="@(async () => { await OnClick(number); })">
+                        
+                        <div style="width:fit-content;" class="fit-text">
+                            <h3 class="text-item ">
+                                @Items[number]
+                            </h3>
+                            
+                        </div>
+
+
+
+                        @if (IsClicked[number])
+                        {
+                            <div class="image-container">
+                                <img src="x-png-35415.png" class="overlay" style="opacity: 0.75;" />
+                            </div>
+                        }
+                        
+                    </div>
+                    
+                }
+            </div>
+        }
+    }
+</div>
+
+
+
+
+@code {
+    [Parameter]
+    public int Width { get; set; }
+
+    [Parameter]
+    public int Height { get; set; }
+
+    [Parameter]
+    public List<string> Items { get; set; }
+
+    private List<bool> IsClicked { get; set; }
+
+    private List<List<int>> ItemsNumber { get; set; } = new List<List<int>>();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        ItemsNumber = new List<List<int>>();
+        IsClicked = new List<bool>();
+        await base.OnParametersSetAsync();
+        IsClicked = new List<bool>();
+
+        int i = 0;
+        int z = -1;
+        foreach (var item in Items)
+        {
+            Console.WriteLine(item);
+            IsClicked.Add(false);
+            if(i % Width == 0)
+            {
+                ItemsNumber.Add(new List<int>());
+                z++;
+            }
+            ItemsNumber[z].Add(i);
+            i++;
+        }
+        await ReloadSize();
+    }
+
+    private async Task ReloadSize()
+    {
+        await Task.Delay(10);
+
+        await JS.InvokeVoidAsync("resize");
+    }
+
+
+    async Task OnClick(int item)
+    {
+        IsClicked[item] = !IsClicked[item];
+        await InvokeAsync(StateHasChanged);
+    }
+
+
+
+}

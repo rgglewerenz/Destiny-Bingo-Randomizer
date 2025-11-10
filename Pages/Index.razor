@@ -1,0 +1,67 @@
+﻿@page "/"
+@using Destiny_Bingo_Randomizer.Interfaces
+@using System.Diagnostics
+@inject NavigationManager NavMan
+@inject IDiscordBotService DiscordBotService
+
+<PageTitle>Randomizer </PageTitle>
+
+<h1>Please select one of the options below</h1>
+
+
+<div>
+    <button @onclick="GenerateCard" class="btn btn-primary">Generate New Card Locally</button>
+
+    <button @onclick="GenerateDiscordCard" class="btn btn-primary">Generate New Card Using Discord</button>
+
+    <button @onclick="OpenLocalData" class="btn btn-primary">Open Local File</button>
+
+</div>
+
+
+
+
+<div style="margin-top:15px;">
+    <h5>Customize Card</h5>
+    <div style ="display:flex; flex-flow:row;">
+        <div style="margin-right:20px;">
+            <h6>Width</h6>
+            <InputNumber @bind-Value="width" />
+        </div>
+        <div>
+            <h6>Height</h6>
+            <InputNumber @bind-Value="height" />
+        </div>
+    </div>
+    
+
+</div>
+
+
+@code{
+    int width { get; set; } = 0;
+
+    int height { get; set; } = 0;
+
+
+    async Task GenerateCard(){
+        var twidth = width == 0 ? 5 : width;
+        var theight = height == 0 ? 5 : height;
+        NavMan.NavigateTo($"/Card/{twidth}/{theight}");
+    }
+
+    async Task GenerateDiscordCard(){
+        var twidth = width == 0 ? 5 : width;
+        var theight = height == 0 ? 5 : height;
+        NavMan.NavigateTo($"/DiscordCard/{twidth}/{theight}");
+    }
+
+    async Task OpenLocalData()
+    {
+        var location = Environment.CurrentDirectory;
+        Process.Start("explorer.exe", "wwwroot\\Data\\carditems.csv");
+    }
+
+
+}
+

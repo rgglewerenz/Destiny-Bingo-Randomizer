@@ -1,0 +1,71 @@
+﻿@page "/DiscordCard/{width:int}/{height:int}"
+
+@inject ICardItemGenerationService cardItemGenerationService
+@inject IDiscordBotService DiscordBotService
+@inject NavigationManager NavMan
+
+<style>
+    .button-holder {
+    margin-top: 20px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 209.0px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    }
+</style>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div>
+        <h3 style="color:red;">ERROR: @errorMessage</h3>
+    </div>
+}
+
+<div style="margin-left:auto; margin-right:auto; width:fit-content; margin-bottom:10px;">
+    <label>Please enter the discord channel ID below before generating a new card</label>
+    <br/>
+    <InputText @bind-Value="ChannelID" style="width: 100%;" />
+</div>
+
+
+@if (ChannelID != null)
+{
+
+    <Destiny_Bingo_Randomizer.CardShared.CardLayout Height="height" Width="width" Items="items" />
+}
+
+<div class="button-holder">
+    <button class="btn btn-info" @onclick="@(() => {NavMan.NavigateTo("/");})">Back</button>
+    <button class="btn btn-outline-info" @onclick="@(() => {GenerateCard();})">Generate Card</button>
+</div>
+
+@code {
+    [Parameter]
+    public int width { get; set; } = 0;
+
+    [Parameter]
+    public int height { get; set; } = 0;
+
+
+    List<string> items = new List<string>();
+    string ChannelID { get; set; }
+    string errorMessage { get; set; }
+
+    async Task GenerateCard()
+    {
+        errorMessage = "";
+        var messages = await DiscordBotService.GetAllMessagesInChannel(ChannelID);
+
+        if(messages.Count == 0)
+        {
+            errorMessage = "Unable to read channel with the provided ID";
+            return;
+        }
+
+        string messagecombined = string.Join(",", messages);
+
+        items = cardItemGenerationService.GenerateCardOptions(width, height, new DataStructures.Deck<string>(messagecombined.Split(',').Where(x => !string.IsNullOrWhiteSpace(x)).ToList()));
+    }
+}

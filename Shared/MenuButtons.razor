@@ -1,0 +1,77 @@
+﻿@inject IJSRuntime js
+@inject IWindowManagerProvider manager
+
+@if (true)
+{
+	<div class="menu-container">
+		<button @onclick=close class="btn btn-danger"><span class="oi oi-circle-x"></span></button>
+		<button @onclick=maximize class="btn btn-secondary"><span class="oi @(is_fullScreen ? "oi-fullscreen-exit" : "oi-fullscreen-enter")"></span></button>
+		<button @onclick=minimize class="btn btn-primary"><span class="oi oi-minus"></span></button>
+	</div>
+}
+
+
+@code {
+	bool is_electron = false;
+	bool is_fullScreen = false;
+
+	protected  override async Task OnInitializedAsync()
+	{
+		await base.OnInitializedAsync();
+	}
+
+
+
+
+	protected override async Task OnAfterRenderAsync(bool first)
+	{
+		await base.OnAfterRenderAsync(first);
+
+		if(first){
+			if (await IsElectron())
+			{
+
+				manager.OnResize(async () =>
+				{
+					is_fullScreen = await manager.IsFullscreen();
+					InvokeAsync(StateHasChanged);
+				});
+			}
+		}
+
+	}
+
+	private async Task minimize(){
+		if (await IsElectron()){
+			await manager.Minimize();
+		}
+	}
+
+	private async Task close()
+	{
+		if (await IsElectron())
+		{
+			await manager.Close();
+		}
+	}
+
+	private async Task maximize()
+	{
+		if (await IsElectron())
+		{
+			if (!await manager.IsFullscreen())
+			{
+				await manager.Maximize();
+			}
+			else{
+				await manager.Restore();
+			}
+
+		}
+		is_fullScreen = await manager.IsFullscreen();
+	}
+
+	private async Task<bool> IsElectron(){
+		return await manager.IsElectron();
+	}
+}

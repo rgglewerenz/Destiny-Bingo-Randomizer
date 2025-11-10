@@ -1,0 +1,47 @@
+﻿@page "/Card/{width:int}/{height:int}"
+@inject ICardItemGenerationService cardItemGenerationService
+@inject NavigationManager NavMan
+
+<style>
+    .button-holder{
+        margin-top: 20px;
+        margin-left: auto;
+        margin-right: auto;
+        width: 209.0px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+</style>
+
+
+<Destiny_Bingo_Randomizer.CardShared.CardLayout Height="height" Width="width" Items="items" />
+
+<div class="button-holder">
+    <button class="btn btn-info" @onclick="@(() => {NavMan.NavigateTo("/");})">Back</button>
+    <button class="btn btn-outline-info" @onclick="@(() => {GenerateCard();})">Reload Card</button>
+</div>
+
+
+
+@code {
+    [Parameter]
+    public int width { get; set; }
+
+    [Parameter]
+    public int height { get; set; }
+
+    List<string> items = new List<string>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        GenerateCard();
+    }
+
+    void GenerateCard()
+    {
+        items = cardItemGenerationService.GenerateCardOptions(width, height);
+    }
+}
