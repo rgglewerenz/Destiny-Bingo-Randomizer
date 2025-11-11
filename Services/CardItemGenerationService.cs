@@ -8,8 +8,12 @@ namespace Destiny_Bingo_Randomizer.Services
     {
         private readonly Random random;
         private const string PATH_TO_CARD_ITEMS = "wwwroot\\Data\\carditems.csv";
+        private const string FREE_SPACE_IDENTIFIER = "{Free Space}";
 
-        public CardItemGenerationService() { }
+        public CardItemGenerationService() {
+            random = new Random();
+
+        }
 
         public List<string> GenerateCardOptions(int width, int height, Deck<string> deck = null)
         {
@@ -24,29 +28,58 @@ namespace Destiny_Bingo_Randomizer.Services
                     deck.RemoveAt(deck.Count - 1);
                 }
             }
-            
+
+            var freeSpaces = GetFreeSpaceOptions(deck);
+            deck = RemoveDuplicates(deck);
 
             deck.Shuffle();
 
-            for (int i = 0; i < deck.Count; i++)
+            if(freeSpaces.Count == 0)
             {
-                for (int j = 0; j < deck.Count; j++)
+                return deck.Take(width * height).ToList();
+            }
+
+
+            var freeSpace = freeSpaces[random.Next(0, freeSpaces.Count)];
+            deck.RemoveAll(x => x.Contains(freeSpace));
+            var otheritems = deck.Take((width * height) - 1).ToList();
+            otheritems.Insert(otheritems.Count / 2, freeSpace);
+
+            return otheritems;
+        }
+
+
+        private Deck<string> GetFreeSpaceOptions(Deck<string> items)
+        {
+            var freeSpaces = new Deck<string>();
+            foreach (var item in items)
+            {
+                if (item.Contains(FREE_SPACE_IDENTIFIER))
                 {
-                    
-                    if (i == j)
-                        continue;
-                    if (deck[i].Contains(deck[j]))
-                    {
-                        deck.RemoveAt(i);
-                        i--;
-                        j--;
-                        Console.WriteLine(deck[i] + " = " + deck[j]);
-                    }
-                    
+                    freeSpaces.Add(item.Replace(FREE_SPACE_IDENTIFIER, ""));
                 }
             }
 
-            return deck.Take(width * height).ToList();
+            return freeSpaces;
+        }
+
+        private Deck<string> RemoveDuplicates(Deck<string> items)
+        {
+            for (int i = 0; i < items.Count; i++)
+            {
+                for (int j = 0; j < items.Count; j++)
+                {
+                    if (i == j)
+                        continue;
+                    if (items[i].Contains(items[j]))
+                    {
+                        items.RemoveAt(i);
+                        i--;
+                        j--;
+                    }
+                }
+            }
+            return items;
         }
     }
 }
